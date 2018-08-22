@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">WeChatRecord</string>
+    <string name="record">聊天记录</string>
+    <string name="contact">联系人</string>
 </resources>

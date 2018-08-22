@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.junxu.wechatrecord.R;
+import com.junxu.wechatrecord.bean.UserBean;
 
 import java.util.List;
 
@@ -22,11 +23,11 @@ import butterknife.ButterKnife;
 public class WeChatInfoAdapter extends RecyclerView.Adapter<WeChatInfoAdapter.ViewHolder> {
 
     private Context context;
-    private List<String> weChatInfoList;
+    private List<UserBean> weChatInfoList;
 
 
 
-    public WeChatInfoAdapter(Context context, List<String> weChatInfoList) {
+    public WeChatInfoAdapter(Context context, List<UserBean> weChatInfoList) {
         this.context = context;
         this.weChatInfoList = weChatInfoList;
     }
@@ -41,11 +42,17 @@ public class WeChatInfoAdapter extends RecyclerView.Adapter<WeChatInfoAdapter.Vi
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         if (weChatInfoList!=null&&weChatInfoList.size()>0){
-           String weChatInfo = weChatInfoList.get(position);
-           String[] weChatInfos = weChatInfo.split("\\*");
-            holder.weChatId.setText(weChatInfos[0]);
-            holder.name.setText(weChatInfos[1]);
-            holder.userName.setText(weChatInfos[2]);
+
+           final String talker = weChatInfoList.get(position).getUsername();
+            holder.weChatId.setText(weChatInfoList.get(position).getUsername());
+            holder.name.setText(weChatInfoList.get(position).getNickname());
+            holder.userName.setText(weChatInfoList.get(position).getAlias());
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mOnItemClickListener.onItemClick(talker);
+                }
+            });
         }
     }
 
@@ -67,6 +74,16 @@ public class WeChatInfoAdapter extends RecyclerView.Adapter<WeChatInfoAdapter.Vi
             ButterKnife.bind(this,itemView);
             itemView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         }
+    }
+
+    private OnItemClickListener mOnItemClickListener;
+
+    public void setmOnItemClickListener(OnItemClickListener mOnItemClickListener) {
+        this.mOnItemClickListener = mOnItemClickListener;
+    }
+
+    public interface OnItemClickListener{
+        void onItemClick(String talker);
     }
 
 

@@ -24,6 +24,19 @@
             android:text="确定"/>
     </LinearLayout>
 
+   <!-- <Button
+        android:id="@+id/btn_contact"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/contact"
+        android:layout_below="@id/layout_uin"/>
+    <Button
+        android:id="@+id/btn_record"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_contact"
+        android:text="@string/record"/>-->
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_wechat_info"
         android:layout_width="match_parent"

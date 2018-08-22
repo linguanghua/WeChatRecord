@@ -1,8 +1,10 @@
 package com.junxu.wechatrecord;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
@@ -18,70 +20,98 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import com.junxu.wechatrecord.adapter.WeChatInfoAdapter;
-import com.junxu.wechatrecord.presenter.MainPresenter;
-import com.junxu.wechatrecord.presenter.WeChatInfoPresenter;
-import com.junxu.wechatrecord.view.WeChatInfoView;
+import com.junxu.wechatrecord.app.WeChatApplication;
+import com.junxu.wechatrecord.bean.Message;
+import com.junxu.wechatrecord.bean.UserBean;
+import com.junxu.wechatrecord.presenter.ContactPresenter;
+import com.junxu.wechatrecord.utils.UinSPUtils;
+import com.junxu.wechatrecord.view.ContactView;
 
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
-public class WeChatInfoActivity extends AppCompatActivity implements WeChatInfoView {
+public class WeChatInfoActivity extends AppCompatActivity implements ContactView, WeChatInfoAdapter.OnItemClickListener {
 
     @BindView(R.id.rv_wechat_info)
     RecyclerView recyclerView;
+
     @BindView(R.id.et_uin)
     EditText etUin;
+
     @BindView(R.id.btn_uin_commit)
     Button btnUinCommit;
 
-    WeChatInfoPresenter weChatInfoPresenter;
+    @BindView(R.id.layout_uin)
+    LinearLayout layoutUin;
+
     String filePath;
-    String uin;
+    String mUin;
+    int position = -1;
 
     private static final int MY_PERMISSION_REQUEST_CODE = 10000;
     private String[] permissions = new String[]{
             Manifest.permission.READ_PHONE_STATE
     };
 
+    SharedPreferences preferences;
+    SharedPreferences.Editor editor;
+    private ContactPresenter presenter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_we_chat_info);
         ButterKnife.bind(this);
-        weChatInfoPresenter = new WeChatInfoPresenter(this);
+        preferences = WeChatApplication.mContext.getApplicationContext().getSharedPreferences("uin", Context.MODE_PRIVATE);
+        editor = preferences.edit();
+
         Intent intent = getIntent();
         if (intent != null) {
+            position = intent.getIntExtra("position", -1);
             String fileName = intent.getStringExtra("fileName");
             if (!TextUtils.isEmpty(fileName)) {
                 filePath = "/data/data/com.tencent.mm/MicroMsg/" + fileName + "/EnMicroMsg.db";
+            }
+            if (position != -1) {
+                mUin = preferences.getString("uin" + position, "");
+                if(!TextUtils.isEmpty(mUin)){
+                    layoutUin.setVisibility(View.GONE);
+                    getPermission();
+                }
             }
         }
 
         btnUinCommit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                 uin = etUin.getText().toString();
-                if (TextUtils.isEmpty(uin)){
+                mUin = etUin.getText().toString();
+                if (TextUtils.isEmpty(mUin)) {
                     etUin.setText("uin输入为空了，请重新输入！");
-                }else{
+                } else {
+                    UinSPUtils.put("uin" + position,mUin);
                     if (!TextUtils.isEmpty(filePath)) {
                         getPermission();
                     }
+
                 }
             }
         });
 
 
-
     }
 
-    private void getRecord() {
-
-        weChatInfoPresenter.readWeChatDatabase(this, filePath,uin);
+    private void getRecord(){
+        if (position!=-1 && !TextUtils.isEmpty(filePath)) {
+            presenter = new ContactPresenter(this);
+            presenter.init(this, filePath, mUin);
+            presenter.showAddressList();
+        }
     }
 
 
@@ -169,11 +199,25 @@ public class WeChatInfoActivity extends AppCompatActivity implements WeChatInfoV
     }
 
     @Override
-    public void onSetWeChatInfo(List<String> weChatInfoList) {
+    public void onSetWeChatContactInfo(List<UserBean> weChatInfoList) {
         recyclerView.setVisibility(View.VISIBLE);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        WeChatInfoAdapter weChatInfoAdapter = new WeChatInfoAdapter(this,weChatInfoList);
+        WeChatInfoAdapter weChatInfoAdapter = new WeChatInfoAdapter(this, weChatInfoList);
+        weChatInfoAdapter.setmOnItemClickListener(this);
         recyclerView.setAdapter(weChatInfoAdapter);
+    }
 
+    @Override
+    public void onItemClick(String talker) {
+        RecordActivity.startAction(this,filePath,position,talker);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (presenter != null){
+            presenter.destroy();
+            presenter = null;
+        }
     }
 }

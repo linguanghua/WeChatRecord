@@ -1,4 +1,4 @@
-package com.junxu.wechatrecord.Utils;
+package com.junxu.wechatrecord.utils;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

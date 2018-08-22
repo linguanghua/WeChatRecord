@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements MainView{
                 public void OnClickListener(int position) {
                     Intent intent = new Intent(MainActivity.this, WeChatInfoActivity.class);
                     intent.putExtra("fileName", fileNameList.get(position));
+                    intent.putExtra("position", position);
                     startActivity(intent);
                 }
             });
